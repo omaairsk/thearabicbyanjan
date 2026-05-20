@@ -126,6 +126,36 @@ a { color: inherit; text-decoration: none; }
 }
 .loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
+/* Music mute toggle button */
+.loader-mute {
+  position: absolute;
+  top: 22px; right: 22px;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, .12);
+  border: 1px solid var(--gold-line);
+  color: var(--gold-1);
+  cursor: pointer;
+  font-size: 1rem;
+  z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s ease, transform .2s ease, color .2s ease;
+}
+.loader-mute:hover {
+  background: var(--gold-soft);
+  transform: scale(1.1);
+}
+.loader-mute.muted { color: var(--muted); }
+.loader-mute.muted::after {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 26px; height: 2px;
+  background: #ff7a6c;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  border-radius: 50px;
+}
+
 /* twinkling stars */
 .loader-stars {
   position: absolute; inset: 0;

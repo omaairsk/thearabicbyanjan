@@ -17,7 +17,13 @@
 <body>
 
   <!-- ========== LOADING SCREEN ========== -->
+  <!-- Background music (plays during loading) -->
+  <audio id="bgMusic" src="music.mp3" preload="auto" loop></audio>
+
   <div id="loader" class="loader" aria-hidden="true">
+    <button class="loader-mute" id="loaderMute" type="button" aria-label="Toggle music">
+      <i class="fas fa-volume-high" id="muteIcon"></i>
+    </button>
     <div class="loader-stars"></div>
     <div class="loader-content">
       <div class="dunes"></div>

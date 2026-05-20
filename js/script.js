@@ -478,12 +478,92 @@ function initNav() {
 }
 
 /* =========================================================
-   LOADER
+   LOADER + BACKGROUND MUSIC
    ========================================================= */
+const music = {
+  el: null,
+  muted: false,
+  faded: false,
+};
+
+function initMusic() {
+  music.el = $("#bgMusic");
+  if (!music.el) return;
+
+  music.el.volume = 0.7;
+
+  // Restore mute preference
+  const savedMute = localStorage.getItem("tab_music_muted") === "1";
+  setMuted(savedMute, /*persist*/ false);
+
+  // Try to autoplay immediately
+  tryPlay();
+
+  // Fallback: most browsers block autoplay-with-sound until user interacts.
+  // Attach a one-shot listener so the very first tap/click/key starts music.
+  const startOnInteract = () => {
+    tryPlay();
+    document.removeEventListener("click",     startOnInteract, true);
+    document.removeEventListener("touchstart",startOnInteract, true);
+    document.removeEventListener("keydown",   startOnInteract, true);
+    document.removeEventListener("scroll",    startOnInteract, true);
+  };
+  document.addEventListener("click",      startOnInteract, true);
+  document.addEventListener("touchstart", startOnInteract, true);
+  document.addEventListener("keydown",    startOnInteract, true);
+  document.addEventListener("scroll",     startOnInteract, true);
+
+  // Mute toggle
+  $("#loaderMute").addEventListener("click", (e) => {
+    e.stopPropagation();
+    setMuted(!music.muted, /*persist*/ true);
+    if (!music.muted) tryPlay();
+  });
+}
+
+function tryPlay() {
+  if (!music.el || music.faded) return;
+  const p = music.el.play();
+  if (p && typeof p.catch === "function") {
+    p.catch(() => { /* will retry on next interaction */ });
+  }
+}
+
+function setMuted(state, persist) {
+  music.muted = state;
+  if (music.el) music.el.muted = state;
+  const btn  = $("#loaderMute");
+  const icon = $("#muteIcon");
+  if (btn)  btn.classList.toggle("muted", state);
+  if (icon) icon.className = state ? "fas fa-volume-xmark" : "fas fa-volume-high";
+  if (persist) localStorage.setItem("tab_music_muted", state ? "1" : "0");
+}
+
+/* Smoothly fade music out when loader hides */
+function fadeOutMusic(duration = 900) {
+  if (!music.el || music.faded) return;
+  music.faded = true;
+  const startVol = music.el.volume;
+  const steps = 20;
+  let i = 0;
+  const t = setInterval(() => {
+    i++;
+    const v = startVol * (1 - i / steps);
+    music.el.volume = v < 0 ? 0 : v;
+    if (i >= steps) {
+      clearInterval(t);
+      music.el.pause();
+      music.el.currentTime = 0;
+    }
+  }, duration / steps);
+}
+
 function hideLoader() {
   const ld = $("#loader");
+  if (!ld) return;
+  fadeOutMusic(900);
   ld.classList.add("hidden");
-  setTimeout(() => ld.remove(), 800);
+  setTimeout(() => ld.remove(), 900);
 }
 
 /* =========================================================
@@ -497,6 +577,7 @@ window.addEventListener("DOMContentLoaded", () => {
   renderCart();
   initNav();
   initReveal();
+  initMusic();
 
   $("#cartBtn").onclick      = openCart;
   $("#cartClose").onclick    = closeCart;
@@ -508,6 +589,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // Hide loader when everything (incl. images) is ready
 window.addEventListener("load", () => {
-  // Keep the loader on screen long enough to enjoy the animation
-  setTimeout(hideLoader, 2200);
+  // Keep the loader on screen long enough to enjoy the animation + music
+  setTimeout(hideLoader, 3500);
 });
