@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#1a1a1a"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f6d365"/>
+      <stop offset="50%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#a07a1f"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="300" cy="300" r="295" fill="url(#bg)"/>
+  <circle cx="300" cy="300" r="270" fill="none" stroke="url(#gold)" stroke-width="3"/>
+  <circle cx="300" cy="300" r="245" fill="none" stroke="url(#gold)" stroke-width="1.5" stroke-dasharray="2 4"/>
+  <circle cx="300" cy="35" r="6" fill="url(#gold)"/>
+
+  <!-- Chef face -->
+  <g transform="translate(300,205)" stroke="url(#gold)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Chef hat -->
+    <path d="M -42,-30 C -55,-65 -25,-78 -10,-60 C 5,-80 30,-78 35,-55 C 55,-50 50,-22 30,-22 L -38,-22 Z"/>
+    <line x1="-38" y1="-22" x2="32" y2="-22"/>
+    <!-- Face circle small -->
+    <circle cx="-3" cy="-5" r="2.5" fill="url(#gold)"/>
+    <!-- Mustache -->
+    <path d="M -45,8 C -35,18 -20,18 -8,12 C 4,18 20,18 30,8 C 25,22 10,28 -8,22 C -25,28 -40,22 -45,8 Z" fill="url(#gold)" stroke="none"/>
+    <!-- Beard / face contour -->
+    <path d="M -40,-8 C -35,30 0,40 35,15"/>
+    <!-- Arm holding tray -->
+    <path d="M 28,18 C 55,30 80,15 95,5"/>
+    <!-- Tray -->
+    <ellipse cx="105" cy="0" rx="22" ry="6" fill="url(#gold)" stroke="none"/>
+    <path d="M 88,-2 L 122,-2 C 122,-12 113,-18 105,-18 C 97,-18 88,-12 88,-2 Z" fill="none"/>
+    <circle cx="105" cy="-20" r="3" fill="url(#gold)" stroke="none"/>
+  </g>
+
+  <!-- Main text "The Arabic" -->
+  <text x="300" y="345" text-anchor="middle"
+        font-family="'Brush Script MT', cursive, serif"
+        font-size="58" font-style="italic" fill="url(#gold)">The Arabic</text>
+
+  <!-- "BYANJAN" outlined -->
+  <text x="300" y="405" text-anchor="middle"
+        font-family="Impact, 'Arial Black', sans-serif"
+        font-size="58" letter-spacing="4"
+        fill="none" stroke="url(#gold)" stroke-width="1.6">BYANJAN</text>
+
+  <!-- "CAFE & RESTAURANT" -->
+  <text x="300" y="445" text-anchor="middle"
+        font-family="Georgia, serif" font-size="20" letter-spacing="6"
+        fill="url(#gold)">CAFE &amp; RESTAURANT</text>
+
+  <!-- Decorative flourish -->
+  <g stroke="url(#gold)" stroke-width="1.6" fill="none" stroke-linecap="round">
+    <path d="M 140,470 C 200,460 250,475 300,468 C 350,475 400,460 460,470"/>
+    <circle cx="140" cy="470" r="4" fill="url(#gold)"/>
+    <circle cx="460" cy="470" r="4" fill="url(#gold)"/>
+    <path d="M 285,478 L 300,492 L 315,478" />
+    <circle cx="300" cy="498" r="3" fill="url(#gold)"/>
+  </g>
+
+  <!-- Tagline -->
+  <text x="300" y="535" text-anchor="middle"
+        font-family="Georgia, serif" font-style="italic"
+        font-size="24" fill="url(#gold)">Enjoy The Fun Of Arabia</text>
+</svg>
