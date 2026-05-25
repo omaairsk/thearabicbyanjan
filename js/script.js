@@ -416,10 +416,19 @@ function initSearch() {
   const input = $("#menuSearch");
   const wrap  = input.closest(".menu-search");
   const clear = $("#searchClear");
+  const chips = $$(".search-chip");
+
+  const syncChips = (val) => {
+    const v = val.trim().toLowerCase();
+    chips.forEach(c => {
+      c.classList.toggle("active", v && c.dataset.q.toLowerCase() === v);
+    });
+  };
 
   const update = () => {
     searchState.query = input.value;
     wrap.classList.toggle("has-text", input.value.length > 0);
+    syncChips(input.value);
     applyMenuFilter();
   };
 
@@ -428,6 +437,40 @@ function initSearch() {
     input.value = "";
     update();
     input.focus();
+  });
+
+  // Quick-search chips
+  chips.forEach(chip => {
+    chip.addEventListener("click", () => {
+      // Toggle: if chip is already active, clear search
+      if (chip.classList.contains("active")) {
+        input.value = "";
+      } else {
+        input.value = chip.dataset.q;
+      }
+      update();
+      // Smoothly scroll the menu list into view on mobile after picking a chip
+      if (window.innerWidth < 760) {
+        setTimeout(() => {
+          $("#menuList").scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 50);
+      }
+    });
+  });
+
+  // Keyboard shortcut: press "/" anywhere to focus search (desktop power-users)
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "/" && document.activeElement?.tagName !== "INPUT"
+        && document.activeElement?.tagName !== "TEXTAREA") {
+      e.preventDefault();
+      input.focus();
+      input.select();
+    }
+    if (e.key === "Escape" && document.activeElement === input) {
+      input.value = "";
+      update();
+      input.blur();
+    }
   });
 }
 

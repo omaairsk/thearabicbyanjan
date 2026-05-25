@@ -192,11 +192,22 @@
         <p class="section-sub">Tap any item to add it to your cart, then send your order on WhatsApp.</p>
       </div>
 
-      <div class="menu-search-wrap">
+      <div class="menu-search-wrap" id="menuSearchWrap">
         <div class="menu-search">
-          <i class="fas fa-magnifying-glass"></i>
-          <input type="text" id="menuSearch" placeholder="Search dishes... (e.g. butter chicken, momo, pizza)" autocomplete="off" />
+          <span class="search-icon"><i class="fas fa-magnifying-glass"></i></span>
+          <input type="text" id="menuSearch" placeholder="Search dishes — try chicken, momo, pizza..." autocomplete="off" spellcheck="false" />
           <button class="search-clear" id="searchClear" type="button" aria-label="Clear search"><i class="fas fa-xmark"></i></button>
+          <span class="search-shortcut" aria-hidden="true">/</span>
+        </div>
+        <div class="search-chips" id="searchChips" role="group" aria-label="Quick search">
+          <span class="chip-label"><i class="fas fa-bolt"></i> Quick:</span>
+          <button class="search-chip" data-q="chicken">Chicken</button>
+          <button class="search-chip" data-q="momo">Momo</button>
+          <button class="search-chip" data-q="pizza">Pizza</button>
+          <button class="search-chip" data-q="paneer">Paneer</button>
+          <button class="search-chip" data-q="biryani">Al-Faham</button>
+          <button class="search-chip" data-q="mojito">Mojito</button>
+          <button class="search-chip" data-q="shake">Shakes</button>
         </div>
       </div>
 
