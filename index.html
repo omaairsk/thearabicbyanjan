@@ -192,8 +192,21 @@
         <p class="section-sub">Tap any item to add it to your cart, then send your order on WhatsApp.</p>
       </div>
 
+      <div class="menu-search-wrap">
+        <div class="menu-search">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="text" id="menuSearch" placeholder="Search dishes... (e.g. butter chicken, momo, pizza)" autocomplete="off" />
+          <button class="search-clear" id="searchClear" type="button" aria-label="Clear search"><i class="fas fa-xmark"></i></button>
+        </div>
+      </div>
+
       <div class="menu-tabs" id="menuTabs" role="tablist"></div>
       <div class="menu-list" id="menuList"></div>
+      <div class="menu-no-results" id="menuNoResults">
+        <i class="fas fa-utensils-slash"></i>
+        <h4>No dishes found</h4>
+        <p>Try a different keyword — or browse our categories above.</p>
+      </div>
     </div>
   </section>
 

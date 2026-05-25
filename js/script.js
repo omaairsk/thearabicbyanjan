@@ -302,7 +302,8 @@ function renderMenuTabs() {
     if (!btn) return;
     $$(".menu-tab", tabs).forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    filterMenu(btn.dataset.target);
+    searchState.tab = btn.dataset.target;
+    applyMenuFilter();
   });
 }
 
@@ -313,12 +314,12 @@ function renderMenu() {
       <h3>${cat.cat.toUpperCase()}</h3>
     </div>
     ${cat.items.map(item => `
-      <article class="menu-item reveal" data-cat="${cat.id}" data-id="${item.id}">
+      <article class="menu-item reveal" data-cat="${cat.id}" data-id="${item.id}" data-name="${escapeHtml(item.name)}" data-desc="${escapeHtml(item.desc || '')}">
         <div class="mi-head">
-          <h4>${item.name}</h4>
+          <h4>${escapeHtml(item.name)}</h4>
           <span class="mi-tag ${item.type}">${item.type === "veg" ? "VEG" : "NON-VEG"}</span>
         </div>
-        ${item.desc ? `<p class="mi-desc">${item.desc}</p>` : ""}
+        ${item.desc ? `<p class="mi-desc">${escapeHtml(item.desc)}</p>` : ""}
         <div class="mi-options">
           ${item.options.map((opt, i) => `
             <div class="mi-option">
@@ -355,6 +356,78 @@ function filterMenu(target) {
   });
   $$(".menu-category-block", $("#menuList")).forEach(el => {
     el.style.display = all || el.dataset.cat === target ? "" : "none";
+  });
+}
+
+/* =========================================================
+   SEARCH MENU
+   ========================================================= */
+const searchState = { query: "", tab: "all" };
+
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+function escapeHtml(s)  { return s.replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c])); }
+
+function highlight(text, q) {
+  const safe = escapeHtml(text);
+  if (!q) return safe;
+  const re = new RegExp(`(${escapeRegex(q)})`, "ig");
+  return safe.replace(re, "<mark>$1</mark>");
+}
+
+function applyMenuFilter() {
+  const q = searchState.query.trim().toLowerCase();
+  const tab = searchState.tab;
+  const allTab = tab === "all";
+  let visibleCount = 0;
+
+  $$(".menu-item", $("#menuList")).forEach(el => {
+    const inCat = allTab || el.dataset.cat === tab;
+    let match = true;
+    if (q) {
+      const name = (el.dataset.name || "").toLowerCase();
+      const desc = (el.dataset.desc || "").toLowerCase();
+      match = name.includes(q) || desc.includes(q);
+    }
+    const show = inCat && match;
+    el.style.display = show ? "" : "none";
+    if (show) visibleCount++;
+
+    // Update highlights inside the visible card
+    const nameEl = el.querySelector(".mi-head h4");
+    const descEl = el.querySelector(".mi-desc");
+    if (nameEl) nameEl.innerHTML = highlight(el.dataset.name || "", q);
+    if (descEl && el.dataset.desc) descEl.innerHTML = highlight(el.dataset.desc, q);
+  });
+
+  // Hide / show category blocks (hide if searching, or if not selected)
+  $$(".menu-category-block", $("#menuList")).forEach(el => {
+    const inCat = allTab || el.dataset.cat === tab;
+    el.style.display = (inCat && !q) ? "" : "none";
+  });
+
+  // No results
+  $("#menuNoResults").classList.toggle("show", visibleCount === 0);
+  $("#menuList").style.display = visibleCount === 0 ? "none" : "";
+}
+
+function initSearch() {
+  const input = $("#menuSearch");
+  const wrap  = input.closest(".menu-search");
+  const clear = $("#searchClear");
+
+  const update = () => {
+    searchState.query = input.value;
+    wrap.classList.toggle("has-text", input.value.length > 0);
+    applyMenuFilter();
+  };
+
+  input.addEventListener("input", update);
+  clear.addEventListener("click", () => {
+    input.value = "";
+    update();
+    input.focus();
   });
 }
 
@@ -578,6 +651,7 @@ window.addEventListener("DOMContentLoaded", () => {
   initNav();
   initReveal();
   initMusic();
+  initSearch();
 
   $("#cartBtn").onclick      = openCart;
   $("#cartClose").onclick    = closeCart;
