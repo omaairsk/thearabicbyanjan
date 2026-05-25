@@ -302,7 +302,8 @@ function renderMenuTabs() {
     if (!btn) return;
     $$(".menu-tab", tabs).forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    filterMenu(btn.dataset.target);
+    searchState.tab = btn.dataset.target;
+    applyMenuFilter();
   });
 }
 
@@ -313,12 +314,12 @@ function renderMenu() {
       <h3>${cat.cat.toUpperCase()}</h3>
     </div>
     ${cat.items.map(item => `
-      <article class="menu-item reveal" data-cat="${cat.id}" data-id="${item.id}">
+      <article class="menu-item reveal" data-cat="${cat.id}" data-id="${item.id}" data-name="${escapeHtml(item.name)}" data-desc="${escapeHtml(item.desc || '')}">
         <div class="mi-head">
-          <h4>${item.name}</h4>
+          <h4>${escapeHtml(item.name)}</h4>
           <span class="mi-tag ${item.type}">${item.type === "veg" ? "VEG" : "NON-VEG"}</span>
         </div>
-        ${item.desc ? `<p class="mi-desc">${item.desc}</p>` : ""}
+        ${item.desc ? `<p class="mi-desc">${escapeHtml(item.desc)}</p>` : ""}
         <div class="mi-options">
           ${item.options.map((opt, i) => `
             <div class="mi-option">
@@ -355,6 +356,78 @@ function filterMenu(target) {
   });
   $$(".menu-category-block", $("#menuList")).forEach(el => {
     el.style.display = all || el.dataset.cat === target ? "" : "none";
+  });
+}
+
+/* =========================================================
+   SEARCH MENU
+   ========================================================= */
+const searchState = { query: "", tab: "all" };
+
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+function escapeHtml(s)  { return s.replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c])); }
+
+function highlight(text, q) {
+  const safe = escapeHtml(text);
+  if (!q) return safe;
+  const re = new RegExp(`(${escapeRegex(q)})`, "ig");
+  return safe.replace(re, "<mark>$1</mark>");
+}
+
+function applyMenuFilter() {
+  const q = searchState.query.trim().toLowerCase();
+  const tab = searchState.tab;
+  const allTab = tab === "all";
+  let visibleCount = 0;
+
+  $$(".menu-item", $("#menuList")).forEach(el => {
+    const inCat = allTab || el.dataset.cat === tab;
+    let match = true;
+    if (q) {
+      const name = (el.dataset.name || "").toLowerCase();
+      const desc = (el.dataset.desc || "").toLowerCase();
+      match = name.includes(q) || desc.includes(q);
+    }
+    const show = inCat && match;
+    el.style.display = show ? "" : "none";
+    if (show) visibleCount++;
+
+    // Update highlights inside the visible card
+    const nameEl = el.querySelector(".mi-head h4");
+    const descEl = el.querySelector(".mi-desc");
+    if (nameEl) nameEl.innerHTML = highlight(el.dataset.name || "", q);
+    if (descEl && el.dataset.desc) descEl.innerHTML = highlight(el.dataset.desc, q);
+  });
+
+  // Hide / show category blocks (hide if searching, or if not selected)
+  $$(".menu-category-block", $("#menuList")).forEach(el => {
+    const inCat = allTab || el.dataset.cat === tab;
+    el.style.display = (inCat && !q) ? "" : "none";
+  });
+
+  // No results
+  $("#menuNoResults").classList.toggle("show", visibleCount === 0);
+  $("#menuList").style.display = visibleCount === 0 ? "none" : "";
+}
+
+function initSearch() {
+  const input = $("#menuSearch");
+  const wrap  = input.closest(".menu-search");
+  const clear = $("#searchClear");
+
+  const update = () => {
+    searchState.query = input.value;
+    wrap.classList.toggle("has-text", input.value.length > 0);
+    applyMenuFilter();
+  };
+
+  input.addEventListener("input", update);
+  clear.addEventListener("click", () => {
+    input.value = "";
+    update();
+    input.focus();
   });
 }
 
@@ -478,12 +551,92 @@ function initNav() {
 }
 
 /* =========================================================
-   LOADER
+   LOADER + BACKGROUND MUSIC
    ========================================================= */
+const music = {
+  el: null,
+  muted: false,
+  faded: false,
+};
+
+function initMusic() {
+  music.el = $("#bgMusic");
+  if (!music.el) return;
+
+  music.el.volume = 0.7;
+
+  // Restore mute preference
+  const savedMute = localStorage.getItem("tab_music_muted") === "1";
+  setMuted(savedMute, /*persist*/ false);
+
+  // Try to autoplay immediately
+  tryPlay();
+
+  // Fallback: most browsers block autoplay-with-sound until user interacts.
+  // Attach a one-shot listener so the very first tap/click/key starts music.
+  const startOnInteract = () => {
+    tryPlay();
+    document.removeEventListener("click",     startOnInteract, true);
+    document.removeEventListener("touchstart",startOnInteract, true);
+    document.removeEventListener("keydown",   startOnInteract, true);
+    document.removeEventListener("scroll",    startOnInteract, true);
+  };
+  document.addEventListener("click",      startOnInteract, true);
+  document.addEventListener("touchstart", startOnInteract, true);
+  document.addEventListener("keydown",    startOnInteract, true);
+  document.addEventListener("scroll",     startOnInteract, true);
+
+  // Mute toggle
+  $("#loaderMute").addEventListener("click", (e) => {
+    e.stopPropagation();
+    setMuted(!music.muted, /*persist*/ true);
+    if (!music.muted) tryPlay();
+  });
+}
+
+function tryPlay() {
+  if (!music.el || music.faded) return;
+  const p = music.el.play();
+  if (p && typeof p.catch === "function") {
+    p.catch(() => { /* will retry on next interaction */ });
+  }
+}
+
+function setMuted(state, persist) {
+  music.muted = state;
+  if (music.el) music.el.muted = state;
+  const btn  = $("#loaderMute");
+  const icon = $("#muteIcon");
+  if (btn)  btn.classList.toggle("muted", state);
+  if (icon) icon.className = state ? "fas fa-volume-xmark" : "fas fa-volume-high";
+  if (persist) localStorage.setItem("tab_music_muted", state ? "1" : "0");
+}
+
+/* Smoothly fade music out when loader hides */
+function fadeOutMusic(duration = 900) {
+  if (!music.el || music.faded) return;
+  music.faded = true;
+  const startVol = music.el.volume;
+  const steps = 20;
+  let i = 0;
+  const t = setInterval(() => {
+    i++;
+    const v = startVol * (1 - i / steps);
+    music.el.volume = v < 0 ? 0 : v;
+    if (i >= steps) {
+      clearInterval(t);
+      music.el.pause();
+      music.el.currentTime = 0;
+    }
+  }, duration / steps);
+}
+
 function hideLoader() {
   const ld = $("#loader");
+  if (!ld) return;
+  fadeOutMusic(900);
   ld.classList.add("hidden");
-  setTimeout(() => ld.remove(), 800);
+  setTimeout(() => ld.remove(), 900);
 }
 
 /* =========================================================
@@ -497,6 +650,8 @@ window.addEventListener("DOMContentLoaded", () => {
   renderCart();
   initNav();
   initReveal();
+  initMusic();
+  initSearch();
 
   $("#cartBtn").onclick      = openCart;
   $("#cartClose").onclick    = closeCart;
@@ -508,6 +663,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // Hide loader when everything (incl. images) is ready
 window.addEventListener("load", () => {
-  // Keep the loader on screen long enough to enjoy the animation
-  setTimeout(hideLoader, 2200);
+  // Keep the loader on screen long enough to enjoy the animation + music
+  setTimeout(hideLoader, 3500);
 });
